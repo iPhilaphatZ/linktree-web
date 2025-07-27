@@ -86,7 +86,7 @@ async function handleCommand(cmd) {
     case "whoami":
       await showProgress();
       printToTerminal(
-        `About Me:\n- Name: PhilaphatZ\n- Educator / Dev&Ops\n- Skills: Shell Script, Web Dev, Automation\n- Status: Always Learning & Sharing and Talk Nerdy To Me😊`,
+        `About Me:\n- Name: PhilaphatZ\n- Educator / Dev&Ops\n- Skills: Shell Script, Web Dev, Automation\n- Status: Always Learning & Sharing \n Talk Nerdy To Me😊`,
         true
       );
       break;
