@@ -1,44 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Linktree Custom Terminal</title>
-  <link rel="stylesheet" href="style.css" />
-  <!-- FingerprintJS Lite CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@3/dist/fp.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PhilaphatZ | Terminal</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="container">
-    <header>
-      <h1>Welcome to Philaphatz Linktree Terminal</h1>
-      <p># Some data is recorded anonymously for analytics & security.</p>
-    </header>
-
-    <section id="terminal-section">
-      <div id="terminal-output" aria-live="polite"></div>
-      <form id="command-form" autocomplete="off">
-        <span class="prompt">&gt;</span>
-        <input
-          type="text"
-          id="command-input"
-          placeholder="Type command here..."
-          autofocus
-          spellcheck="false"
-          autocomplete="off"
-          autocorrect="off"
-          autocapitalize="off"
-        />
-      </form>
-      <div id="progress-container" aria-hidden="true">
-        <div id="progress-bar"></div>
-        <div id="progress-text"></div>
-      </div>
-    </section>
+  <div class="terminal-container">
+    <div id="terminal-output">
+      <p class="welcome">Welcome to PhilaphatZ Terminal v1.0</p>
+      <p class="welcome">บางคำสั่งอาจมีการบันทึกข้อมูลเพื่อปรับปรุงบริการ</p>
+      <p>Type <strong>help</strong> to see available commands.</p>
+    </div>
+    <div class="terminal-input">
+      <span class="prompt">></span>
+      <input type="text" id="command-input" autofocus>
+    </div>
   </div>
 
-  <audio id="lofi-audio" loop preload="auto" src="https://cdn.pixabay.com/download/audio/2022/02/03/audio_c7ef1647a3.mp3?filename=lofi-beats-ambient-11156.mp3" volume="0.1"></audio>
+  <!-- Donate QR Modal -->
+  <div id="donate-modal" class="modal hidden">
+    <div class="modal-content">
+      <span id="close-modal" class="close">&times;</span>
+      <h2>✨ Support this Project ✨</h2>
+      <div class="donate-grid">
+        <div class="donate-section">
+          <h3>PayPal</h3>
+          <p><a href="https://paypal.me/philaphatz" target="_blank" class="donate-link">Donate via PayPal</a></p>
+          <canvas id="paypal-qr"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
