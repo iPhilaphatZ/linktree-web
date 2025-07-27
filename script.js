@@ -179,4 +179,46 @@ PayPal: https://paypal.me/philaphatz
 
     case "time":
       print(`[TIME] ${new Date().toLocaleString()}`);
-      logToDisc
+      logToDiscord(cmd,"Displayed time");
+      break;
+
+    case "echo":
+      print(cmd.replace("echo ",""));
+      logToDiscord(cmd,"Echoed text");
+      break;
+
+    case "quote":
+      const quotes=[
+        "Code is like humor. When you have to explain it, it’s bad.",
+        "Talk is cheap. Show me the code.",
+        "First, solve the problem. Then, write the code."
+      ];
+      print(`[QUOTE]\n“${quotes[Math.floor(Math.random()*quotes.length)]}”`);
+      logToDiscord(cmd,"Displayed quote");
+      break;
+
+    case "back":
+      window.open("https://linktr.ee/philaphatz.work","_blank");
+      print("[OK] Back to Linktree");
+      logToDiscord(cmd,"Back to Linktree");
+      break;
+
+    default:
+      print(`[ERROR] Unknown command: ${cmd} (type 'help')`);
+      logToDiscord(cmd,"Unknown command");
+  }
+}
+
+input.addEventListener("keydown",e=>{
+  if(e.key==="Enter"){
+    const cmd=input.value.trim();
+    if(!cmd)return;
+    print("> "+cmd);
+    runCommand(cmd);
+    input.value="";
+  }
+});
+
+// เริ่มต้น
+showHelp();
+logToDiscord("session_start","User opened terminal");
