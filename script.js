@@ -13,7 +13,8 @@ audioPlayer.loop = true;
 audioPlayer.play().catch(() => {}); // ignore play() errors (e.g. user didn't interact)
 
 // Generate QR for PayPal and PromptPay
-QRCode.toCanvas(document.getElementById("paypal-qr"), "https://paypal.me/philaphatz", { width: 150 });
+// Generate QR for TrueMoney Wallet (ใช้เบอร์)
+QRCode.toCanvas(document.getElementById('truemoney-qr'), "0930401105", {width: 150});
 QRCode.toCanvas(document.getElementById("promptpay-qr"), "https://promptpay.io/0930401105", { width: 150 });
 
 // Handle form submit (Enter key)
