@@ -67,10 +67,10 @@ async function handleCommand(cmd) {
       await showProgress();
       const site = args[0];
       const links = {
-        facebook: "https://facebook.com/",
-        instagram: "https://instagram.com/",
+        facebook: "https://facebook.com/PhilaphatZ",
+        instagram: "https://instagram.com/first_philaphatz",
         linktree: "https://linktr.ee/philaphatz.work",
-        email: "mailto:someone@example.com",
+        email: "mailto:philaphatz.work@gmail.com",
       };
       if (links[site]) {
         printToTerminal(`Running ${site}...`);
@@ -86,7 +86,7 @@ async function handleCommand(cmd) {
     case "whoami":
       await showProgress();
       printToTerminal(
-        `About Me:\n- Name: PhilaphatZ\n- Role: Developer / Automation & Web Enthusiast\n- Skills: Shell Script, Web Dev, Automation\n- Status: Always Learning & Sharing`,
+        `About Me:\n- Name: PhilaphatZ\n- Educator / Dev&Ops\n- Skills: Shell Script, Web Dev, Automation\n- Status: Always Learning & Sharing and Talk Nerdy To Me😊`,
         true
       );
       break;
