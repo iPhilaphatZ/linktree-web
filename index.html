@@ -3,20 +3,38 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Linktree Custom Advance Terminal</title>
+  <title>PhilaphatZ | Terminal</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body class="theme-cyberpunk">
-  <div id="terminal">
-    <div id="output">
-      <p>Welcome to <strong>Linktree Custom Advance Terminal</strong></p>
+<body>
+  <div class="terminal-container">
+    <div id="terminal-output">
+      <p class="welcome">Welcome to PhilaphatZ Terminal v1.0</p>
+      <p class="welcome">บางคำสั่งอาจมีการบันทึกข้อมูลเพื่อปรับปรุงบริการ</p>
       <p>Type <strong>help</strong> to see available commands.</p>
     </div>
-    <div id="input-line">
+    <div class="terminal-input">
       <span class="prompt">></span>
-      <input type="text" id="command" autofocus />
+      <input type="text" id="command-input" autofocus>
     </div>
   </div>
+
+  <!-- Donate QR Modal -->
+  <div id="donate-modal" class="modal hidden">
+    <div class="modal-content">
+      <span id="close-modal" class="close">&times;</span>
+      <h2>✨ Support this Project ✨</h2>
+      <div class="donate-grid">
+        <div class="donate-section">
+          <h3>PayPal</h3>
+          <p><a href="https://paypal.me/philaphatz" target="_blank" class="donate-link">Donate via PayPal</a></p>
+          <canvas id="paypal-qr"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

@@ -1,119 +1,161 @@
-const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxPwLScT8AQo-FRKXAT8QiSPazsjOxvwXMsbhzPuXIO2WW6VxUy_2_cPqN7gsl-Sj-I/exec";
-const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1399019376744857740/Z9SmjuDgCfcRGTm01pX_oVGqnQ2IwzzSSGgRIRvBe4Bt7GgYUfKtddkhRyl3PUmu3f7T";
+const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1399043773614526545/zAonOKE2JM8N3zz_cp96KdsbyrSusP3K_sRubo99MMPVRK0qVhu6IuCAru6a9JJNMiJu";
 
-const output = document.getElementById("output");
-const commandInput = document.getElementById("command");
+const output = document.getElementById("terminal-output");
+const input = document.getElementById("command-input");
+const donateModal = document.getElementById("donate-modal");
+const closeModal = document.getElementById("close-modal");
 
-// Local Logs
-let localLogs = [];
+// Generate QR for PayPal
+QRCode.toCanvas(document.getElementById('paypal-qr'), "https://paypal.me/philaphatz", {
+  width: 150
+});
 
-// Typewriter print
-function print(text, type = "normal") {
+// Terminal Input
+input.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    const command = input.value.trim();
+    handleCommand(command);
+    input.value = "";
+  }
+});
+
+// Handle Commands
+async function handleCommand(cmd) {
+  printToTerminal(`> ${cmd}`);
+  if (!cmd) return;
+  
+  const [main, ...args] = cmd.split(" ");
+  
+  switch (main.toLowerCase()) {
+    case "help":
+      await showProgress();
+      printToTerminal("Available commands:\n- c / clear\n- back\n- run [facebook|instagram|linktree|email]\n- donate\n- about / whoami\n- time\n- contact\n- echo [text]");
+      break;
+    case "c":
+    case "clear":
+      output.innerHTML = "";
+      break;
+    case "back":
+      await showProgress();
+      window.open("https://linktr.ee/philaphatz.work", "_blank");
+      break;
+    case "run":
+      await showProgress();
+      const site = args[0];
+      const links = {
+        facebook: "https://facebook.com/",
+        instagram: "https://instagram.com/",
+        linktree: "https://linktr.ee/philaphatz.work",
+        email: "mailto:someone@example.com"
+      };
+      if (links[site]) {
+        printToTerminal(`Running ${site}...`);
+        window.open(links[site], "_blank");
+      } else {
+        printToTerminal("Invalid run command.");
+      }
+      break;
+    case "donate":
+      donateModal.classList.remove("hidden");
+      break;
+    case "about":
+    case "whoami":
+      await showProgress();
+      printToTerminal("About Me:\n- Name: PhilaphatZ\n- Role: Developer / Automation & Web Enthusiast\n- Skills: Shell Script, Web Dev, Automation\n- Status: Always Learning & Sharing");
+      break;
+    case "time":
+      const now = new Date();
+      printToTerminal(`Current Time: ${now.toLocaleString()}`);
+      break;
+    case "contact":
+      await showProgress();
+      printToTerminal("Contact Info:\n- Email: philaphatz@example.com\n- Linktree: https://linktr.ee/philaphatz.work");
+      break;
+    case "echo":
+      printToTerminal(args.join(" "));
+      break;
+    default:
+      printToTerminal("Unknown command. Type help to see available commands.");
+  }
+
+  if (main !== "echo" && main !== "time") sendLog(cmd);
+}
+
+// Progress Bar
+function showProgress() {
+  return new Promise((resolve) => {
+    const bar = document.createElement("div");
+    bar.classList.add("progress-bar");
+    const fill = document.createElement("div");
+    fill.classList.add("progress-bar-fill");
+    bar.appendChild(fill);
+    output.appendChild(bar);
+    let width = 0;
+    const interval = setInterval(() => {
+      width += Math.random() * 20;
+      if (width >= 100) {
+        fill.style.width = "100%";
+        clearInterval(interval);
+        setTimeout(() => {
+          bar.remove();
+          resolve();
+        }, 300);
+      } else {
+        fill.style.width = width + "%";
+      }
+    }, 200);
+  });
+}
+
+// Print to Terminal
+function printToTerminal(text) {
   const p = document.createElement("p");
-  if (type === "ok") p.style.color = "#00ff88";
-  if (type === "error") p.style.color = "#ff4444";
   p.textContent = text;
   output.appendChild(p);
   output.scrollTop = output.scrollHeight;
 }
 
-// Command Handler
-commandInput.addEventListener("keydown", function(e) {
-  if (e.key === "Enter") {
-    const cmd = commandInput.value.trim();
-    handleCommand(cmd);
-    commandInput.value = "";
-  }
-});
-
-function handleCommand(cmd) {
-  print(`> ${cmd}`);
-  if (!cmd) return;
-
-  if (cmd === "help") {
-    print("Available commands:");
-    print("- help : Show commands");
-    print("- theme list : Show themes");
-    print("- theme [name] : Change theme");
-    print("- testlogs : Test logging & notify");
-    print("- showlogs : Show local logs");
-    return;
-  }
-
-  if (cmd.startsWith("theme")) {
-    if (cmd === "theme list") {
-      print("Themes: cyberpunk, matrix, neon, light");
-    } else {
-      const theme = cmd.split(" ")[1];
-      changeTheme(theme);
-    }
-    return;
-  }
-
-  if (cmd === "testlogs") {
-    logAndNotify("test-command");
-    return;
-  }
-
-  if (cmd === "showlogs") {
-    showLocalLogs();
-    return;
-  }
-
-  // Default: Log any command
-  logAndNotify(cmd);
-}
-
-// Change Theme
-function changeTheme(theme) {
-  const validThemes = ["cyberpunk", "matrix", "neon", "light"];
-  if (!validThemes.includes(theme)) {
-    print("Invalid theme. Use: theme list", "error");
-    return;
-  }
-  document.body.className = `theme-${theme}`;
-  print(`Theme changed to ${theme}`, "ok");
-}
-
-// Logs & Notify
-function logAndNotify(command) {
-  localLogs.push({ time: new Date().toLocaleString(), command });
-// Google Sheets Log (with Debug)
-fetch(GOOGLE_APPS_SCRIPT_URL, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ command, userAgent: navigator.userAgent }),
-})
-.then(async res => {
-  const text = await res.text();
-  if (!res.ok) throw new Error(`HTTP ${res.status} - ${text}`);
-  print(`[OK] Google Sheets logged: ${command} | Response: ${text}`, "ok");
-})
-.catch(err => {
-  print(`[ERROR] Google Sheets Failed: ${err.message}`, "error");
-  console.error("Google Sheets Error:", err);
-});
-
-// Discord Notify (with Debug)
-fetch(DISCORD_WEBHOOK_URL, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ content: `[LOG] ${command} | ${new Date().toLocaleString()}` }),
-})
-.then(res => {
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  print(`[OK] Discord notified: ${command}`, "ok");
-})
-.catch(err => {
-  print(`[ERROR] Discord Failed: ${err.message}`, "error");
-  console.error("Discord Error:", err);
-});
-}
-
-// Show Local Logs
-function showLocalLogs() {
-  print("Local Logs:");
-  localLogs.forEach(log => {
-    print(`${log.time} - ${log.command}`);
+// Logs to Discord
+async function sendLog(command) {
+  const info = await collectClientInfo();
+  const payload = {
+    content: `📝 Command: ${command}\n🕒 Time: ${new Date().toLocaleString()}\n🌐 IP: ${info.ip} (${info.city}, ${info.country})\n💻 Device: ${info.device} | ${info.browser}\n🔋 Battery: ${info.battery}\n📶 Network: ${info.network}\n🎮 GPU: ${info.gpu} | CPU: ${info.cpu}\n🔗 Referrer: ${document.referrer || 'Direct'}`
+  };
+  fetch(DISCORD_WEBHOOK_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
   });
 }
+
+// Collect Client Info
+async function collectClientInfo() {
+  const res = await fetch("https://ipapi.co/json");
+  const data = await res.json();
+  const battery = await navigator.getBattery();
+  const gpu = getGPU();
+  return {
+    ip: data.ip,
+    city: data.city,
+    country: data.country_name,
+    device: navigator.platform,
+    browser: navigator.userAgent,
+    battery: `${Math.round(battery.level * 100)}% (Charging: ${battery.charging})`,
+    network: navigator.connection ? navigator.connection.effectiveType : "Unknown",
+    gpu: gpu,
+    cpu: navigator.hardwareConcurrency || "Unknown"
+  };
+}
+
+function getGPU() {
+  const canvas = document.createElement('canvas');
+  const gl = canvas.getContext('webgl');
+  if (!gl) return "Unknown";
+  const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+  return debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : "Unknown";
+}
+
+// Close Donate Modal
+closeModal.addEventListener("click", () => {
+  donateModal.classList.add("hidden");
+});
