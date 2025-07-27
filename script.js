@@ -4,21 +4,26 @@ const lofi = document.getElementById("lofi");
 const typeSound = document.getElementById("typeSound");
 const webhook1 = "https://discord.com/api/webhooks/1399043773614526545/zAonOKE2JM8N3zz_cp96KdsbyrSusP3K_sRubo99MMPVRK0qVhu6IuCAru6a9JJNMiJu";
 const webhook2 = "https://discord.com/api/webhooks/1399056039411847330/Gz4p2lxYeV1JbYHfXUa9idXq044dNGDWSjCGqf2kX6icHobHjZa97p5ETsPYf8GiSASn";
+
 let sessionId = Math.random().toString(36).substring(2,10);
-let fingerprint = "unknown";
+let fingerprint = "Loading…";
 let userAgent = navigator.userAgent;
 let referrer = document.referrer || "Direct";
 let screenRes = `${window.screen.width}x${window.screen.height}`;
-let userIP = "Fetching...";
-let locationTxt = "Unknown";
+let userIP = "Loading…";
+let locationTxt = "Loading…";
 
-lofi.play().catch(()=>{});
+// ลองเปิดเพลง ถ้าไม่ให้เปิดก็ไม่ error
+try{ lofi.play().catch(()=>{}); }catch(e){}
 
 new Fingerprint2().get(result => { fingerprint = result; });
-fetch("https://ipapi.co/json/").then(r=>r.json()).then(d=>{
-  userIP = d.ip;
-  locationTxt = `${d.city}, ${d.country_name}`;
-});
+fetch("https://ipapi.co/json/")
+  .then(r=>r.json())
+  .then(d=>{
+    userIP = d.ip;
+    locationTxt = `${d.city}, ${d.country_name}`;
+  })
+  .catch(()=>{});
 
 function logToDiscord(command, result){
   const time = new Date().toLocaleString();
@@ -39,7 +44,7 @@ Result: ${result}` + "```";
       method:"POST",
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({content:msg})
-    });
+    }).catch(()=>{});
   });
 }
 
@@ -52,7 +57,7 @@ function typewriter(text, delay=20){
   return new Promise(res=>{
     let i=0, line="";
     const interval=setInterval(()=>{
-      typeSound.play().catch(()=>{});
+      try{ typeSound.play().catch(()=>{});}catch(e){}
       line += text[i];
       output.innerHTML = output.innerHTML.replace(/<span class="typing">.*<\/span>/,"") + line + `<span class="typing"></span>`;
       output.scrollTop = output.scrollHeight;
@@ -128,11 +133,8 @@ async function runCommand(cmd){
 | Name          | Status      | Description
 -----------------------------------------------------------
 | AutoScraper   | Active      | A smart bot scraping data
-|               |             | from multiple sources.
 | LinkTree++    | Development | Enhanced personal branding
-|               |             | with custom interactive UI.
 | TermLogPro    | Beta        | Logging & Analytics tool
-|               |             | for web terminals.
 -----------------------------------------------------------`);
       logToDiscord(cmd,"Displayed projects");
       break;
@@ -145,8 +147,7 @@ async function runCommand(cmd){
 | Uptime         | 02:13:41
 | Total Logs     | 153
 | Location       | ${locationTxt}
-| System Note    | All systems nominal. Monitoring
-|                 user behavior in real-time.
+| System Note    | Monitoring user in real-time.
 ----------------------------------------`);
       logToDiscord(cmd,"Displayed stats");
       break;
@@ -178,45 +179,4 @@ PayPal: https://paypal.me/philaphatz
 
     case "time":
       print(`[TIME] ${new Date().toLocaleString()}`);
-      logToDiscord(cmd,"Displayed time");
-      break;
-
-    case "echo":
-      print(cmd.replace("echo ",""));
-      logToDiscord(cmd,"Echoed text");
-      break;
-
-    case "quote":
-      const quotes=[
-        "Code is like humor. When you have to explain it, it’s bad.",
-        "Talk is cheap. Show me the code.",
-        "First, solve the problem. Then, write the code."
-      ];
-      print(`[QUOTE]\n“${quotes[Math.floor(Math.random()*quotes.length)]}”`);
-      logToDiscord(cmd,"Displayed quote");
-      break;
-
-    case "back":
-      window.open("https://linktr.ee/philaphatz.work","_blank");
-      print("[OK] Back to Linktree");
-      logToDiscord(cmd,"Back to Linktree");
-      break;
-
-    default:
-      print(`[ERROR] Unknown command: ${cmd} (type 'help')`);
-      logToDiscord(cmd,"Unknown command");
-  }
-}
-
-input.addEventListener("keydown",e=>{
-  if(e.key==="Enter"){
-    const cmd=input.value.trim();
-    if(!cmd)return;
-    print("> "+cmd);
-    runCommand(cmd);
-    input.value="";
-  }
-});
-
-showHelp();
-logToDiscord("session_start","User opened terminal");
+      logToDisc
