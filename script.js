@@ -98,7 +98,7 @@ async function handleCommand(cmd) {
     case "contact":
       await showProgress();
       printToTerminal(
-        `Contact Info:\n- Email: philaphatz@example.com\n- Linktree: https://linktr.ee/philaphatz.work`,
+        `Contact Info:\n- Email: philaphatz.work@gmail.com\n- Linktree: https://linktr.ee/philaphatz.work`,
         true
       );
       break;
