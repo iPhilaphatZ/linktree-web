@@ -214,6 +214,22 @@ async function handleCommand(cmdRaw) {
   const mainCmd = parts[0].toLowerCase();
   const arg = parts.slice(1).join(" ");
 
+  if (cmd === "help") {
+  clearTerminal();
+  appendLine("Available commands:", "highlight");
+  appendLine("c or clear       - Clear the terminal");
+  appendLine("back             - Open main Linktree page");
+  appendLine("run [name]       - Open social link (facebook, instagram, linktree, email)");
+  appendLine("donate           - Show donation QR code");
+  appendLine("about or whoami  - About me section");
+  appendLine("time             - Show current time");
+  appendLine("contact          - Show contact information");
+  appendLine("echo [text]      - Display your text");
+  appendLine("help             - Show this help message");
+  return;
+}
+
+
   // Commands that bypass loading
   const instantCommands = ["time", "echo"];
 
@@ -378,9 +394,15 @@ async function initFingerprint() {
 (async () => {
   await initFingerprint();
 
-  appendLine("Type commands like: c, back, run facebook, donate, whoami, time, contact, echo ...", "highlight");
+  // แสดงข้อความแนะนำตอนเปิดเว็บ
+  appendLine("Welcome to the Custom Linktree Terminal!", "highlight");
+  appendLine("Type 'help' to see available commands.\n", "highlight");
+
+  // focus input และใส่ placeholder ชัดเจน
+  commandInput.placeholder = "Type a command here and press Enter...";
   commandInput.focus();
 })();
+
 
 // Command form submit event
 commandForm.addEventListener("submit", async (e) => {
