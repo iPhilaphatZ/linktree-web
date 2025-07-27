@@ -1,419 +1,282 @@
-// ===== Constants =====
-const BACK_LINK = "https://linktr.ee/philaphatz.work";
-const PROMPTPAY_NUMBER = "0930401105";
-const DISCORD_WEBHOOKS = [
-  "https://discord.com/api/webhooks/1399043773614526545/zAonOKE2JM8N3zz_cp96KdsbyrSusP3K_sRubo99MMPVRK0qVhu6IuCAru6a9JJNMiJu",
-  "https://discord.com/api/webhooks/1399056039411847330/Gz4p2lxYeV1JbYHfXUa9idXq044dNGDWSjCGqf2kX6icHobHjZa97p5ETsPYf8GiSASn"
-];
+// Configs
+const LINKTREE_MAIN = "https://linktr.ee/philaphatz.work";
+const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1399043773614526545/zAonOKE2JM8N3zz_cp96KdsbyrSusP3K_sRubo99MMPVRK0qVhu6aCAru6a9JJNMiJu";
 
-// Social links placeholder (user fills)
+// Social links
 const SOCIAL_LINKS = {
-  facebook: "https://facebook.com/yourusername",
-  instagram: "https://instagram.com/yourusername",
-  linktree: "https://linktr.ee/yourusername",
-  email: "mailto:your.email@example.com"
+  facebook: "https://facebook.com/iphilaphatz",
+  instagram: "https://instagram.com/iphilaphatz",
+  linktree: LINKTREE_MAIN,
+  email: "mailto:iphilaphatz@example.com",
 };
 
-// Typing sound toggle (true to enable)
-const TYPING_SOUND_ENABLED = true;
+// Session & fingerprint
+let sessionId = null;
+let fpData = null;
 
-// Variables
-const terminalOutput = document.getElementById("terminal-output");
-const commandForm = document.getElementById("command-form");
-const commandInput = document.getElementById("command-input");
-const progressContainer = document.getElementById("progress-container");
-const progressBar = document.getElementById("progress-bar");
-const progressText = document.getElementById("progress-text");
+// Terminal elements
+const output = document.getElementById("output");
+const inputForm = document.getElementById("input-form");
+const input = document.getElementById("input");
 const lofiAudio = document.getElementById("lofi-audio");
 
-let fingerprint = null;
-let sessionId = generateSessionId();
-let isProcessing = false;
+// Utility for delay
+const wait = (ms) => new Promise((res) => setTimeout(res, ms));
 
-// Init lo-fi audio softly
-lofiAudio.volume = 0.08;
-lofiAudio.play().catch(() => { /* Autoplay may be blocked, ignore */ });
-
-// Generate Session ID (random 8 char hex)
-function generateSessionId() {
-  return Math.random().toString(16).slice(2, 10);
-}
-
-// Utility: Sleep for ms
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-// Utility: Escape HTML
-function escapeHTML(str) {
-  return str.replace(/[&<>"']/g, function (m) {
-    return (
-      {
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#39;"
-      }[m] || m
-    );
-  });
-}
-
-// Typewriter effect: print text char by char
-async function typeWriter(text, element, speed = 30) {
-  element.textContent = "";
-  for (let i = 0; i < text.length; i++) {
-    element.textContent += text.charAt(i);
-    if (TYPING_SOUND_ENABLED) playTypingSound();
-    await sleep(speed);
-  }
-}
-
-// Play typing sound effect (simple beep)
-function playTypingSound() {
-  if (!TYPING_SOUND_ENABLED) return;
-  // We are using lo-fi ambient so no per keystroke sound here
-  // Can implement here if you want per key click
-}
-
-// Append text line to terminal output (with optional CSS class)
-function appendLine(text, cssClass = "") {
+// Print line to terminal
+function printLine(text = "", className = "") {
   const line = document.createElement("div");
-  line.className = cssClass;
+  if (className) line.classList.add(className);
   line.textContent = text;
-  terminalOutput.appendChild(line);
-  terminalOutput.scrollTop = terminalOutput.scrollHeight;
+  output.appendChild(line);
+  output.scrollTop = output.scrollHeight;
 }
 
-// Append HTML section block (used for whoami, contact, etc.)
-function appendSection(title, htmlContent) {
-  const section = document.createElement("section");
-  section.className = "output-section";
-  const h2 = document.createElement("h2");
-  h2.textContent = title;
-  section.appendChild(h2);
-  const contentDiv = document.createElement("div");
-  contentDiv.innerHTML = htmlContent;
-  section.appendChild(contentDiv);
-  terminalOutput.appendChild(section);
-  terminalOutput.scrollTop = terminalOutput.scrollHeight;
+// Print HTML line to terminal
+function printHTML(html) {
+  const div = document.createElement("div");
+  div.innerHTML = html;
+  output.appendChild(div);
+  output.scrollTop = output.scrollHeight;
 }
 
 // Clear terminal output
 function clearTerminal() {
-  terminalOutput.innerHTML = "";
+  output.innerHTML = "";
 }
 
-// Show progress bar with fake loading
-async function showProgressBar(duration = 2500) {
-  progressContainer.style.display = "block";
-  progressBar.style.width = "0%";
+// Progress bar animation
+async function showProgress(text = "Loading...", duration = 2500) {
+  printLine(text);
+  const container = document.createElement("div");
+  container.classList.add("progress-bar-container");
+  const bar = document.createElement("div");
+  bar.classList.add("progress-bar");
+  container.appendChild(bar);
+  output.appendChild(container);
+  output.scrollTop = output.scrollHeight;
 
-  const messages = [
-    "Initializing connection...",
-    "Loading data packets...",
-    "Decrypting response...",
-    "Finalizing output..."
-  ];
-
-  let startTime = performance.now();
-  let endTime = startTime + duration;
-
-  while (performance.now() < endTime) {
-    let elapsed = performance.now() - startTime;
-    let percent = Math.min(100, Math.floor((elapsed / duration) * 100));
-    progressBar.style.width = percent + "%";
-
-    // Change message every 25%
-    let msgIndex = Math.floor(percent / 25);
-    progressText.textContent = messages[msgIndex] || "Completing...";
-
-    await sleep(100);
+  const steps = 50;
+  for (let i = 0; i <= steps; i++) {
+    bar.style.width = `${(i / steps) * 100}%`;
+    await wait(duration / steps);
   }
-  progressBar.style.width = "100%";
-  progressText.textContent = "Done!";
-  await sleep(400);
-  progressContainer.style.display = "none";
-  progressBar.style.width = "0%";
-  progressText.textContent = "";
+  container.remove();
 }
 
-// Send logs to all Discord webhooks as rich embed
-async function sendLogs(command, extraData = {}) {
-  if (!fingerprint) return; // wait fingerprint ready
+// Display welcome message with hint to help
+function showWelcome() {
+  clearTerminal();
+  printLine("Welcome to Philaphatz Terminal!");
+  printLine("Type 'help' or '?' to see available commands.");
+  printLine("");
+}
 
-  // Get IP, location from free API (can fail silently)
-  let ipInfo = {};
-  try {
-    const res = await fetch("https://ipapi.co/json/");
-    if (res.ok) ipInfo = await res.json();
-  } catch {}
+// Format timestamp
+function getTimeString() {
+  const now = new Date();
+  return now.toLocaleString();
+}
 
-  // Prepare embed data
+// Send logs to Discord webhook
+async function sendLogToDiscord(command, extra = "") {
+  if (!fpData || !sessionId) return;
   const embed = {
-    title: `🖥️ Command Executed: ${command}`,
-    color: 3066993, // Green color
+    title: "Terminal Command Log",
+    color: 0x6acd3c,
     fields: [
       { name: "Session ID", value: sessionId, inline: true },
-      { name: "Timestamp", value: new Date().toISOString(), inline: true },
-      { name: "IP & Location", value: `${ipInfo.ip || "Unknown"} (${ipInfo.city || "?"}, ${ipInfo.region || "?"}, ${ipInfo.country_name || "?"})`, inline: false },
-      { name: "Device Info", value: `${navigator.platform} | ${navigator.userAgent}`, inline: false },
-      { name: "Fingerprint", value: fingerprint.visitorId || "N/A", inline: false },
-      { name: "Battery", value: await getBatteryInfo(), inline: true },
-      { name: "Network", value: navigator.connection ? navigator.connection.effectiveType : "Unknown", inline: true },
-      { name: "Referrer", value: document.referrer || "None", inline: false }
-    ]
+      { name: "Command", value: command, inline: true },
+      { name: "Timestamp", value: getTimeString(), inline: false },
+      { name: "Fingerprint", value: JSON.stringify(fpData, null, 2).substring(0, 500), inline: false },
+      { name: "Extra Info", value: extra || "-", inline: false },
+    ],
   };
-
-  // Append extra data if any
-  for (const [k, v] of Object.entries(extraData)) {
-    embed.fields.push({ name: k, value: v, inline: false });
-  }
-
-  // Discord message payload
-  const payload = {
-    embeds: [embed]
-  };
-
-  // Send to all webhooks
-  for (const url of DISCORD_WEBHOOKS) {
-    try {
-      await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-    } catch (e) {
-      console.error("Discord webhook error:", e);
-    }
-  }
-}
-
-// Get Battery info nicely formatted
-async function getBatteryInfo() {
-  if (!navigator.getBattery) return "N/A";
   try {
-    const battery = await navigator.getBattery();
-    return `${Math.round(battery.level * 100)}% (Charging: ${battery.charging})`;
-  } catch {
-    return "N/A";
+    await fetch(DISCORD_WEBHOOK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ embeds: [embed] }),
+    });
+  } catch (e) {
+    // Fail silently
   }
 }
 
-// Handle command execution
-async function handleCommand(cmdRaw) {
-  if (isProcessing) return; // Prevent multiple simultaneous commands
+// Handle command input
+inputForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const raw = input.value.trim();
+  if (!raw) return;
+  input.value = "";
 
-  const cmd = cmdRaw.trim();
-  if (!cmd) return;
+  const args = raw.split(/\s+/);
+  const cmd = args[0].toLowerCase();
 
-  isProcessing = true;
-  clearTerminal();
+  // Show command entered
+  printLine(`> ${raw}`, "command-text");
 
-  const parts = cmd.split(" ");
-  const mainCmd = parts[0].toLowerCase();
-  const arg = parts.slice(1).join(" ");
-
-  if (cmd === "help") {
-  clearTerminal();
-  appendLine("Available commands:", "highlight");
-  appendLine("c or clear       - Clear the terminal");
-  appendLine("back             - Open main Linktree page");
-  appendLine("run [name]       - Open social link (facebook, instagram, linktree, email)");
-  appendLine("donate           - Show donation QR code");
-  appendLine("about or whoami  - About me section");
-  appendLine("time             - Show current time");
-  appendLine("contact          - Show contact information");
-  appendLine("echo [text]      - Display your text");
-  appendLine("help             - Show this help message");
-  return;
-}
-
-
-  // Commands that bypass loading
-  const instantCommands = ["time", "echo"];
-
-  // Show progress bar for most commands except instantCommands
-  if (!instantCommands.includes(mainCmd)) {
-    await showProgressBar(3000);
-  }
-
-  switch (mainCmd) {
+  // Command handling logic
+  switch (cmd) {
     case "c":
     case "clear":
       clearTerminal();
-      appendLine("Terminal cleared.", "highlight");
+      showWelcome();
+      await sendLogToDiscord(raw);
+      break;
+
+    case "help":
+    case "?":
+      showHelp();
+      await sendLogToDiscord(raw);
       break;
 
     case "back":
-      appendLine("Redirecting to main Linktree...", "highlight");
-      window.open(BACK_LINK, "_blank");
+      await showProgress("Redirecting to main Linktree page...", 3000);
+      window.open(LINKTREE_MAIN, "_blank", "noopener");
+      printLine("Opened main Linktree page.");
+      await sendLogToDiscord(raw);
       break;
 
     case "run":
-      if (!arg) {
-        appendLine("Usage: run [facebook|instagram|linktree|email]", "highlight");
-      } else {
-        const url = SOCIAL_LINKS[arg.toLowerCase()];
-        if (url) {
-          appendLine(`Opening ${arg} in a new tab...`, "highlight");
-          window.open(url, "_blank");
-        } else {
-          appendLine(`Unknown social link: ${arg}`, "highlight");
-        }
+      if (args.length < 2) {
+        printLine("Usage: run [facebook|instagram|linktree|email]", "error-text");
+        break;
       }
+      const site = args[1].toLowerCase();
+      if (!SOCIAL_LINKS[site]) {
+        printLine(`Unknown site '${site}'. Type 'help' or '?' for commands.`, "error-text");
+        break;
+      }
+      await showProgress(`Opening ${site}...`, 3000);
+      window.open(SOCIAL_LINKS[site], "_blank", "noopener");
+      printLine(`Opened ${site}.`);
+      await sendLogToDiscord(raw);
       break;
 
     case "donate":
-      await showDonateSection();
+      await showProgress("Preparing donation details...", 3000);
+      showDonateSection();
+      await sendLogToDiscord(raw);
       break;
 
     case "about":
     case "whoami":
-      await showAboutSection();
+      await showProgress("Loading profile info...", 3000);
+      showAboutSection();
+      await sendLogToDiscord(raw);
       break;
 
     case "time":
-      const now = new Date();
-      appendLine(now.toLocaleString());
+      printLine(`Current time: ${getTimeString()}`);
+      await sendLogToDiscord(raw);
       break;
 
     case "contact":
-      await showContactSection();
+      await showProgress("Loading contact info...", 3000);
+      showContactSection();
+      await sendLogToDiscord(raw);
       break;
 
     case "echo":
-      if (!arg) {
-        appendLine("Usage: echo [text]", "highlight");
-      } else {
-        appendLine(arg);
+      if (args.length < 2) {
+        printLine("Usage: echo [text]", "error-text");
+        break;
       }
+      printLine(args.slice(1).join(" "));
+      await sendLogToDiscord(raw);
       break;
 
     default:
-      appendLine(`Unknown command: ${cmd}`, "highlight");
+      printLine(`Unknown command '${raw}'. Type 'help' or '?' to see available commands.`, "error-text");
+      break;
   }
+  output.scrollTop = output.scrollHeight;
+});
 
-  // Send logs quietly (no UI notice)
-  await sendLogs(cmd);
-
-  isProcessing = false;
-}
-
-// Show About Section with grid & sections
-async function showAboutSection() {
-  const aboutHTML = `
-    <div class="about-grid">
-      <section>
-        <h3>Profile</h3>
-        <p>Philaphatz is a passionate developer and digital creator with over 10 years of experience building interactive web applications and tools. He enjoys exploring new technologies, especially in JavaScript, cloud computing, and automation.</p>
-      </section>
-      <section>
-        <h3>Skills</h3>
-        <ul>
-          <li>JavaScript (ES6+), Node.js, React</li>
-          <li>HTML5, CSS3, Responsive Design</li>
-          <li>Shell scripting, Automation tools</li>
-          <li>Cloud APIs and Webhooks</li>
-          <li>UI/UX and Animation Design</li>
-        </ul>
-      </section>
-      <section>
-        <h3>Projects</h3>
-        <ul>
-          <li>Linktree Custom Terminal Interface</li>
-          <li>Discord Webhook Analytics Logger</li>
-          <li>Advanced PromptPay Donation System</li>
-          <li>Interactive Terminal UI with Animations</li>
-        </ul>
-      </section>
-      <section>
-        <h3>About Me</h3>
-        <p>This terminal is designed to be minimal yet powerful, offering custom commands and smooth interactions. It's perfect for showcasing social links while providing a sleek user experience.</p>
-      </section>
-    </div>
-  `;
-  appendSection("About Me", aboutHTML);
-}
-
-// Show Contact Section with grid & sections
-async function showContactSection() {
-  const contactHTML = `
-    <div class="contact-grid">
-      <section>
-        <h3>Email</h3>
-        <p><a href="mailto:philaphatz@example.com">philaphatz@example.com</a></p>
-      </section>
-      <section>
-        <h3>Phone</h3>
-        <p>+66 930 401 105</p>
-      </section>
-      <section>
-        <h3>Location</h3>
-        <p>Bangkok, Thailand</p>
-      </section>
-      <section>
-        <h3>Website</h3>
-        <p><a href="https://philaphatz.work" target="_blank" rel="noopener">https://philaphatz.work</a></p>
-      </section>
-    </div>
-  `;
-  appendSection("Contact Info", contactHTML);
-}
-
-// Show Donate Section with QR PromptPay + animation
-async function showDonateSection() {
+// Show help text
+function showHelp() {
   clearTerminal();
-
-  appendLine("Preparing your donation options...\n", "highlight");
-
-  await sleep(1000);
-
-  const qrUrl = `https://promptpay.info/${PROMPTPAY_NUMBER}`;
-  // Generate QR with Google Chart API (simple)
-  const qrImgUrl = `https://chart.googleapis.com/chart?cht=qr&chs=180x180&chl=${encodeURIComponent(qrUrl)}`;
-
-  const donateHTML = `
-    <div id="donate-section">
-      <p>Scan the QR code below to donate via PromptPay</p>
-      <img id="donate-qr" src="${qrImgUrl}" alt="PromptPay QR Code" />
-      <p class="highlight">Thank you for your support! ❤️</p>
-    </div>
-  `;
-
-  appendSection("Donate", donateHTML);
+  printLine("Available commands:", "command-text");
+  printLine("c, clear          - Clear the terminal");
+  printLine("back              - Open main Linktree page");
+  printLine("run [site]        - Open social link (facebook, instagram, linktree, email)");
+  printLine("donate            - Show donation QR PromptPay");
+  printLine("about, whoami     - Show profile information");
+  printLine("time              - Show current time");
+  printLine("contact           - Show contact information");
+  printLine("echo [text]       - Display text");
+  printLine("help, ?           - Show this help text");
 }
 
-// Get fingerprint with FingerprintJS
+// Show donate section with QR and glow
+function showDonateSection() {
+  clearTerminal();
+  printLine("Thank you for your support!", "command-text");
+  printLine("Scan the PromptPay QR code below to donate:", "");
+  const qrHTML = `
+    <img src="https://chart.googleapis.com/chart?chs=180x180&cht=qr&chl=00020101021126360014A0000006770101110113006609304011055204581253037645802TH63046A94"
+      alt="PromptPay QR Code" class="qr-glow" />
+  `;
+  printHTML(qrHTML);
+}
+
+// Show about section
+function showAboutSection() {
+  clearTerminal();
+  printLine("About Me:", "command-text");
+  const aboutHTML = `
+  <div class="section">
+    <p>Hello! I'm Philaphatz, a full-stack developer with over 10 years of experience.</p>
+    <p>I specialize in web development, shell scripting, and automation.</p>
+    <div class="grid">
+      <div class="grid-item"><b>Skills</b><br>JavaScript, Python, Bash, React, Node.js</div>
+      <div class="grid-item"><b>Projects</b><br>Custom terminal apps, automation tools, APIs</div>
+      <div class="grid-item"><b>Interests</b><br>Open source, DevOps, Cloud Computing</div>
+    </div>
+  </div>
+  `;
+  printHTML(aboutHTML);
+}
+
+// Show contact section
+function showContactSection() {
+  clearTerminal();
+  printLine("Contact Information:", "command-text");
+  const contactHTML = `
+  <div class="section">
+    <div class="grid">
+      <div class="grid-item"><b>Email</b><br>iphilaphatz@example.com</div>
+      <div class="grid-item"><b>Phone</b><br>+66 930 401 105</div>
+      <div class="grid-item"><b>Location</b><br>Bangkok, Thailand</div>
+      <div class="grid-item"><b>Website</b><br><a href="${LINKTREE_MAIN}" target="_blank" rel="noopener">Linktree</a></div>
+    </div>
+  </div>
+  `;
+  printHTML(contactHTML);
+}
+
+// Initialize fingerprint & session id
 async function initFingerprint() {
   const fp = await FingerprintJS.load();
-  fingerprint = await fp.get();
+  const result = await fp.get();
+  sessionId = crypto.randomUUID();
+  fpData = result.visitorId;
+  // You can expand fpData to get full result.details if needed
 }
 
-// Initialize
-(async () => {
+// Start lofi audio
+function startLofi() {
+  lofiAudio.volume = 0.05;
+  lofiAudio.play().catch(() => {});
+}
+
+// Init app
+async function init() {
   await initFingerprint();
+  startLofi();
+  showWelcome();
+  input.focus();
+}
 
-  // แสดงข้อความแนะนำตอนเปิดเว็บ
-  appendLine("Welcome to the Custom Linktree Terminal!", "highlight");
-  appendLine("Type 'help' to see available commands.\n", "highlight");
-
-  // focus input และใส่ placeholder ชัดเจน
-  commandInput.placeholder = "Type a command here and press Enter...";
-  commandInput.focus();
-})();
-
-
-// Command form submit event
-commandForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const input = commandInput.value.trim();
-  if (!input) return;
-  await handleCommand(input);
-  commandInput.value = "";
-});
-
-// Scroll terminal output on new content
-terminalOutput.addEventListener("DOMNodeInserted", () => {
-  terminalOutput.scrollTop = terminalOutput.scrollHeight;
-});
+window.onload = init;
