@@ -1,5 +1,5 @@
 const GOOGLE_APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxPwLScT8AQo-FRKXAT8QiSPazsjOxvwXMsbhzPuXIO2WW6VxUy_2_cPqN7gsl-Sj-I/exec";
-const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/123456789012345678/AbCdEfGhIjKlMnOpQrStUvWxYz";
+const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1399019376744857740/Z9SmjuDgCfcRGTm01pX_oVGqnQ2IwzzSSGgRIRvBe4Bt7GgYUfKtddkhRyl3PUmu3f7T";
 
 const output = document.getElementById("output");
 const commandInput = document.getElementById("command");
