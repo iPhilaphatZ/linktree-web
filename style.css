@@ -1,27 +1,26 @@
 body {
-  background: #0a0a0a;
+  background: radial-gradient(circle, #000 0%, #050505 100%);
   color: #d6ffd6;
   font-family: monospace;
   margin: 0;
   padding: 0;
-  overflow: hidden;
 }
 
 .terminal {
   max-width: 900px;
   margin: 30px auto;
-  background: #000000cc;
+  background: #000000e6;
   padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 0 15px #00ff99;
+  border-radius: 8px;
+  box-shadow: 0 0 15px #00ff99, inset 0 0 5px #007755;
   height: 90vh;
   overflow-y: auto;
 }
 
 .output {
   white-space: pre-wrap;
-  margin-bottom: 10px;
   line-height: 1.4em;
+  margin-bottom: 10px;
 }
 
 .input-line {
@@ -38,8 +37,8 @@ body {
   background: none;
   border: none;
   color: #d6ffd6;
-  font-family: monospace;
   font-size: 1em;
+  font-family: monospace;
   outline: none;
   flex: 1;
 }
@@ -54,38 +53,18 @@ body {
 .progress-bar {
   height: 10px;
   width: 0%;
-  background: linear-gradient(90deg, red, orange, yellow, green, cyan);
+  background: linear-gradient(90deg, #ff0000, #ff9900, #00ff99, #0099ff);
   transition: width 0.3s;
 }
 
-.qr-container {
-  text-align: center;
-  margin: 15px 0;
+.typing {
+  display: inline-block;
+  border-right: 2px solid #00ff99;
+  animation: blink 0.7s infinite;
 }
 
-.qr-container img {
-  width: 200px;
-  animation: pulse 2s infinite;
-  border: 3px solid #00ff99;
-  border-radius: 10px;
-}
-
-@keyframes pulse {
-  0% { box-shadow: 0 0 5px #00ff99; }
-  50% { box-shadow: 0 0 20px #00ff99; }
-  100% { box-shadow: 0 0 5px #00ff99; }
-}
-
-.section {
-  border: 1px solid #444;
-  padding: 10px;
-  margin: 10px 0;
-  background: #111;
-  border-radius: 5px;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 5px;
+@keyframes blink {
+  0% { border-color: #00ff99; }
+  50% { border-color: transparent; }
+  100% { border-color: #00ff99; }
 }

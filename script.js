@@ -1,6 +1,7 @@
 const output = document.getElementById("output");
 const input = document.getElementById("commandInput");
 const lofi = document.getElementById("lofi");
+const typeSound = document.getElementById("typeSound");
 const webhook1 = "https://discord.com/api/webhooks/1399043773614526545/zAonOKE2JM8N3zz_cp96KdsbyrSusP3K_sRubo99MMPVRK0qVhu6IuCAru6a9JJNMiJu";
 const webhook2 = "https://discord.com/api/webhooks/1399056039411847330/Gz4p2lxYeV1JbYHfXUa9idXq044dNGDWSjCGqf2kX6icHobHjZa97p5ETsPYf8GiSASn";
 let sessionId = Math.random().toString(36).substring(2,10);
@@ -9,11 +10,15 @@ let userAgent = navigator.userAgent;
 let referrer = document.referrer || "Direct";
 let screenRes = `${window.screen.width}x${window.screen.height}`;
 let userIP = "Fetching...";
+let locationTxt = "Unknown";
 
-if (lofi) lofi.play().catch(()=>{});
+lofi.play().catch(()=>{});
 
 new Fingerprint2().get(result => { fingerprint = result; });
-fetch("https://api.ipify.org?format=json").then(r=>r.json()).then(d=>userIP=d.ip);
+fetch("https://ipapi.co/json/").then(r=>r.json()).then(d=>{
+  userIP = d.ip;
+  locationTxt = `${d.city}, ${d.country_name}`;
+});
 
 function logToDiscord(command, result){
   const time = new Date().toLocaleString();
@@ -22,13 +27,13 @@ function logToDiscord(command, result){
 Session: ${sessionId}
 Time: ${time}
 IP: ${userIP}
+Location: ${locationTxt}
 Device: ${userAgent}
 Screen: ${screenRes}
 Referrer: ${referrer}
 Fingerprint: ${fingerprint}
 Command: ${command}
 Result: ${result}` + "```";
-
   [webhook1, webhook2].forEach(url=>{
     fetch(url,{
       method:"POST",
@@ -43,122 +48,38 @@ function print(text){
   output.scrollTop = output.scrollHeight;
 }
 
+function typewriter(text, delay=20){
+  return new Promise(res=>{
+    let i=0, line="";
+    const interval=setInterval(()=>{
+      typeSound.play().catch(()=>{});
+      line += text[i];
+      output.innerHTML = output.innerHTML.replace(/<span class="typing">.*<\/span>/,"") + line + `<span class="typing"></span>`;
+      output.scrollTop = output.scrollHeight;
+      i++;
+      if(i>=text.length){clearInterval(interval);output.innerHTML=output.innerHTML.replace(/<span class="typing">.*<\/span>/,"");print("");res();}
+    },delay);
+  });
+}
+
 function fakeProgress(callback){
   return new Promise(res=>{
-    let container = document.createElement("div");
-    container.className = "progress-container";
-    let bar = document.createElement("div");
-    bar.className = "progress-bar";
+    let container=document.createElement("div");
+    container.className="progress-container";
+    let bar=document.createElement("div");
+    bar.className="progress-bar";
     container.appendChild(bar);
     output.appendChild(container);
-    let percent = 0;
-    let interval = setInterval(()=>{
-      percent += Math.floor(Math.random()*10)+5;
-      if(percent>=100) {percent=100; clearInterval(interval); setTimeout(()=>{container.remove();res();},500);}
+    let percent=0;
+    let interval=setInterval(()=>{
+      percent += Math.floor(Math.random()*15)+5;
+      if(percent>=100){percent=100;clearInterval(interval);setTimeout(()=>{container.remove();res();},300);}
       bar.style.width=percent+"%";
-    },200);
+    },150);
   });
 }
 
 function showHelp(){
   print(`[WELCOME TO PHILAPHATZ TERMINAL]
 Type one of the following commands:
-
-help       – show available commands
-whoami     – about me
-contact    – show contact info
-run [name] – open facebook | instagram | linktree | email
-donate     – support me via PromptPay
-time       – show current time
-echo [txt] – print your text
-back       – return to Linktree
-c / clear  – clear the terminal`);
-}
-
-function runCommand(cmd){
-  const args = cmd.split(" ");
-  const main = args[0];
-  switch(main){
-    case "help":
-      showHelp();
-      break;
-    case "c":
-    case "clear":
-      output.innerHTML = "";
-      showHelp();
-      break;
-    case "whoami":
-      fakeProgress().then(()=>{
-        print(`[ABOUT ME]
---------------------------------
-Name: Philaphatz (Dev)
-Bio: Passionate developer creating interactive web apps and automation tools. Skilled in JavaScript, Python, and system scripting. Always exploring new technologies to push creativity and productivity. Enjoys building open-source tools, experimenting with UI/UX, and teaching others through live projects.
---------------------------------`);
-        logToDiscord(cmd,"Displayed about me");
-      });
-      break;
-    case "contact":
-      fakeProgress().then(()=>{
-        print(`[CONTACT]
---------------------------------`);
-        print(`Email : example@mail.com
-Discord : Philaphatz#1234
-GitHub  : https://github.com/philaphatz`);
-        logToDiscord(cmd,"Displayed contact info");
-      });
-      break;
-    case "run":
-      if(!args[1]) {print("Usage: run [facebook|instagram|linktree|email]"); return;}
-      fakeProgress().then(()=>{
-        let url="";
-        if(args[1]==="facebook") url="https://facebook.com/";
-        if(args[1]==="instagram") url="https://instagram.com/";
-        if(args[1]==="linktree") url="https://linktr.ee/philaphatz.work";
-        if(args[1]==="email") url="mailto:example@mail.com";
-        if(url){window.open(url,"_blank"); print(`[OK] Redirected to ${args[1]}`); logToDiscord(cmd,`Opened ${args[1]}`);}
-        else print("Invalid run target");
-      });
-      break;
-    case "donate":
-      fakeProgress().then(()=>{
-        print(`[DONATE MODULE]
-Scan the QR below to support me!
-PayPal: https://paypal.me/philaphatz`);
-        let div=document.createElement("div");
-        div.className="qr-container";
-        div.innerHTML=`<img src="https://promptpay.io/0930401105.png" alt="PromptPay QR">`;
-        output.appendChild(div);
-        logToDiscord(cmd,"Displayed donate QR");
-      });
-      break;
-    case "time":
-      print(`[TIME] ${new Date().toLocaleString()}`);
-      logToDiscord(cmd,"Showed time");
-      break;
-    case "echo":
-      print(cmd.replace("echo ",""));
-      logToDiscord(cmd,"Echoed text");
-      break;
-    case "back":
-      window.open("https://linktr.ee/philaphatz.work","_blank");
-      print("[OK] Back to Linktree");
-      logToDiscord(cmd,"Back to Linktree");
-      break;
-    default:
-      print(`[ERROR] Unknown command: ${cmd} (type 'help' for list)`);
-      logToDiscord(cmd,"Unknown command");
-  }
-}
-
-input.addEventListener("keydown",e=>{
-  if(e.key==="Enter"){
-    const cmd=input.value.trim();
-    if(!cmd) return;
-    print("> " + cmd);
-    runCommand(cmd);
-    input.value="";
-  }
-});
-
-showHelp();
-logToDiscord("session_start","User opened terminal");
+help | whoami | contact | projects | stats | run [name] | donate | time | ech
