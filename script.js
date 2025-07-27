@@ -240,9 +240,9 @@ async function handleCommand(cmd) {
     case "whoami":
       printToTerminal(`About Me:
 - Name: PhilaphatZ
-- Role: Developer / Automation & Web Enthusiast
+- Role: Educator / Dev&Ops
 - Skills: Shell Script, Web Dev, Automation
-- Status: Always Learning & Sharing`);
+- Status: Talk nerdy, To Me`);
       break;
 
     case "time":
@@ -251,7 +251,7 @@ async function handleCommand(cmd) {
 
     case "contact":
       printToTerminal(`Contact Info:
-- Email: philaphatz@example.com
+- Email: philaphatz@icloud.com
 - Linktree: https://linktr.ee/philaphatz.work`);
       break;
 
