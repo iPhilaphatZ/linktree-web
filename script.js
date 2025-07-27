@@ -78,34 +78,36 @@ function changeTheme(theme) {
 // Logs & Notify
 function logAndNotify(command) {
   localLogs.push({ time: new Date().toLocaleString(), command });
+// Google Sheets Log (with Debug)
+fetch(GOOGLE_APPS_SCRIPT_URL, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ command, userAgent: navigator.userAgent }),
+})
+.then(async res => {
+  const text = await res.text();
+  if (!res.ok) throw new Error(`HTTP ${res.status} - ${text}`);
+  print(`[OK] Google Sheets logged: ${command} | Response: ${text}`, "ok");
+})
+.catch(err => {
+  print(`[ERROR] Google Sheets Failed: ${err.message}`, "error");
+  console.error("Google Sheets Error:", err);
+});
 
-  // Google Sheets Log
-  fetch(GOOGLE_APPS_SCRIPT_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ command, userAgent: navigator.userAgent }),
-  })
-  .then(res => {
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    print(`[OK] Google Sheets logged: ${command}`, "ok");
-  })
-  .catch(err => {
-    print("[ERROR] Google Sheets Failed: " + err.message, "error");
-  });
-
-  // Discord Notify
-  fetch(DISCORD_WEBHOOK_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ content: `[LOG] ${command} | ${new Date().toLocaleString()}` }),
-  })
-  .then(res => {
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    print(`[OK] Discord notified: ${command}`, "ok");
-  })
-  .catch(err => {
-    print("[ERROR] Discord Failed: " + err.message, "error");
-  });
+// Discord Notify (with Debug)
+fetch(DISCORD_WEBHOOK_URL, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ content: `[LOG] ${command} | ${new Date().toLocaleString()}` }),
+})
+.then(res => {
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  print(`[OK] Discord notified: ${command}`, "ok");
+})
+.catch(err => {
+  print(`[ERROR] Discord Failed: ${err.message}`, "error");
+  console.error("Discord Error:", err);
+});
 }
 
 // Show Local Logs
