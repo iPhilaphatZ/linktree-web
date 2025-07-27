@@ -1,22 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Philaphatz Terminal</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Linktree Custom Terminal</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- FingerprintJS Lite CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@fingerprintjs/fingerprintjs@3/dist/fp.min.js"></script>
 </head>
 <body>
-  <div class="terminal">
-    <div id="output" class="output"></div>
-    <div class="input-line">
-      <span class="prompt">></span>
-      <input type="text" id="commandInput" autofocus autocomplete="off" />
-    </div>
+  <div id="container">
+    <header>
+      <h1>Welcome to Philaphatz Linktree Terminal</h1>
+      <p># Some data is recorded anonymously for analytics & security.</p>
+    </header>
+
+    <section id="terminal-section">
+      <div id="terminal-output" aria-live="polite"></div>
+      <form id="command-form" autocomplete="off">
+        <span class="prompt">&gt;</span>
+        <input
+          type="text"
+          id="command-input"
+          placeholder="Type command here..."
+          autofocus
+          spellcheck="false"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+        />
+      </form>
+      <div id="progress-container" aria-hidden="true">
+        <div id="progress-bar"></div>
+        <div id="progress-text"></div>
+      </div>
+    </section>
   </div>
-  <audio id="lofi" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_2ed7b21edb.mp3?filename=lofi-study-112191.mp3" loop></audio>
-  <audio id="typeSound" src="https://www.soundjay.com/buttons/sounds/button-16.mp3"></audio>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/fingerprintjs2/2.1.0/fingerprint2.min.js"></script>
+
+  <audio id="lofi-audio" loop preload="auto" src="https://cdn.pixabay.com/download/audio/2022/02/03/audio_c7ef1647a3.mp3?filename=lofi-beats-ambient-11156.mp3" volume="0.1"></audio>
+
   <script src="script.js"></script>
 </body>
 </html>

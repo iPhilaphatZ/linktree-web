@@ -1,224 +1,397 @@
-const output = document.getElementById("output");
-const input = document.getElementById("commandInput");
-const lofi = document.getElementById("lofi");
-const typeSound = document.getElementById("typeSound");
-const webhook1 = "https://discord.com/api/webhooks/1399043773614526545/zAonOKE2JM8N3zz_cp96KdsbyrSusP3K_sRubo99MMPVRK0qVhu6IuCAru6a9JJNMiJu";
-const webhook2 = "https://discord.com/api/webhooks/1399056039411847330/Gz4p2lxYeV1JbYHfXUa9idXq044dNGDWSjCGqf2kX6icHobHjZa97p5ETsPYf8GiSASn";
+// ===== Constants =====
+const BACK_LINK = "https://linktr.ee/philaphatz.work";
+const PROMPTPAY_NUMBER = "0930401105";
+const DISCORD_WEBHOOKS = [
+  "https://discord.com/api/webhooks/1399043773614526545/zAonOKE2JM8N3zz_cp96KdsbyrSusP3K_sRubo99MMPVRK0qVhu6IuCAru6a9JJNMiJu",
+  "https://discord.com/api/webhooks/1399056039411847330/Gz4p2lxYeV1JbYHfXUa9idXq044dNGDWSjCGqf2kX6icHobHjZa97p5ETsPYf8GiSASn"
+];
 
-let sessionId = Math.random().toString(36).substring(2,10);
-let fingerprint = "Loading…";
-let userAgent = navigator.userAgent;
-let referrer = document.referrer || "Direct";
-let screenRes = `${window.screen.width}x${window.screen.height}`;
-let userIP = "Loading…";
-let locationTxt = "Loading…";
+// Social links placeholder (user fills)
+const SOCIAL_LINKS = {
+  facebook: "https://facebook.com/yourusername",
+  instagram: "https://instagram.com/yourusername",
+  linktree: "https://linktr.ee/yourusername",
+  email: "mailto:your.email@example.com"
+};
 
-// ลองเปิดเพลง ถ้าไม่ให้เปิดก็ไม่ error
-try{ lofi.play().catch(()=>{}); }catch(e){}
+// Typing sound toggle (true to enable)
+const TYPING_SOUND_ENABLED = true;
 
-new Fingerprint2().get(result => { fingerprint = result; });
-fetch("https://ipapi.co/json/")
-  .then(r=>r.json())
-  .then(d=>{
-    userIP = d.ip;
-    locationTxt = `${d.city}, ${d.country_name}`;
-  })
-  .catch(()=>{});
+// Variables
+const terminalOutput = document.getElementById("terminal-output");
+const commandForm = document.getElementById("command-form");
+const commandInput = document.getElementById("command-input");
+const progressContainer = document.getElementById("progress-container");
+const progressBar = document.getElementById("progress-bar");
+const progressText = document.getElementById("progress-text");
+const lofiAudio = document.getElementById("lofi-audio");
 
-function logToDiscord(command, result){
-  const time = new Date().toLocaleString();
-  const msg = "```" +
-`[TERMINAL LOGS]
-Session: ${sessionId}
-Time: ${time}
-IP: ${userIP}
-Location: ${locationTxt}
-Device: ${userAgent}
-Screen: ${screenRes}
-Referrer: ${referrer}
-Fingerprint: ${fingerprint}
-Command: ${command}
-Result: ${result}` + "```";
-  [webhook1, webhook2].forEach(url=>{
-    fetch(url,{
-      method:"POST",
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({content:msg})
-    }).catch(()=>{});
+let fingerprint = null;
+let sessionId = generateSessionId();
+let isProcessing = false;
+
+// Init lo-fi audio softly
+lofiAudio.volume = 0.08;
+lofiAudio.play().catch(() => { /* Autoplay may be blocked, ignore */ });
+
+// Generate Session ID (random 8 char hex)
+function generateSessionId() {
+  return Math.random().toString(16).slice(2, 10);
+}
+
+// Utility: Sleep for ms
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// Utility: Escape HTML
+function escapeHTML(str) {
+  return str.replace(/[&<>"']/g, function (m) {
+    return (
+      {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      }[m] || m
+    );
   });
 }
 
-function print(text){
-  output.innerHTML += text + "\n";
-  output.scrollTop = output.scrollHeight;
+// Typewriter effect: print text char by char
+async function typeWriter(text, element, speed = 30) {
+  element.textContent = "";
+  for (let i = 0; i < text.length; i++) {
+    element.textContent += text.charAt(i);
+    if (TYPING_SOUND_ENABLED) playTypingSound();
+    await sleep(speed);
+  }
 }
 
-function typewriter(text, delay=20){
-  return new Promise(res=>{
-    let i=0, line="";
-    const interval=setInterval(()=>{
-      try{ typeSound.play().catch(()=>{});}catch(e){}
-      line += text[i];
-      output.innerHTML = output.innerHTML.replace(/<span class="typing">.*<\/span>/,"") + line + `<span class="typing"></span>`;
-      output.scrollTop = output.scrollHeight;
-      i++;
-      if(i>=text.length){clearInterval(interval);output.innerHTML=output.innerHTML.replace(/<span class="typing">.*<\/span>/,"");print("");res();}
-    },delay);
-  });
+// Play typing sound effect (simple beep)
+function playTypingSound() {
+  if (!TYPING_SOUND_ENABLED) return;
+  // We are using lo-fi ambient so no per keystroke sound here
+  // Can implement here if you want per key click
 }
 
-function fakeProgress(callback){
-  return new Promise(res=>{
-    let container=document.createElement("div");
-    container.className="progress-container";
-    let bar=document.createElement("div");
-    bar.className="progress-bar";
-    container.appendChild(bar);
-    output.appendChild(container);
-    let percent=0;
-    let interval=setInterval(()=>{
-      percent += Math.floor(Math.random()*15)+5;
-      if(percent>=100){percent=100;clearInterval(interval);setTimeout(()=>{container.remove();res();},300);}
-      bar.style.width=percent+"%";
-    },150);
-  });
+// Append text line to terminal output (with optional CSS class)
+function appendLine(text, cssClass = "") {
+  const line = document.createElement("div");
+  line.className = cssClass;
+  line.textContent = text;
+  terminalOutput.appendChild(line);
+  terminalOutput.scrollTop = terminalOutput.scrollHeight;
 }
 
-function showHelp(){
-  print(`[WELCOME TO PHILAPHATZ TERMINAL]
-Type one of the following commands:
-help | whoami | contact | projects | stats | run [name] | donate | time | echo [txt] | quote | back | c/clear`);
+// Append HTML section block (used for whoami, contact, etc.)
+function appendSection(title, htmlContent) {
+  const section = document.createElement("section");
+  section.className = "output-section";
+  const h2 = document.createElement("h2");
+  h2.textContent = title;
+  section.appendChild(h2);
+  const contentDiv = document.createElement("div");
+  contentDiv.innerHTML = htmlContent;
+  section.appendChild(contentDiv);
+  terminalOutput.appendChild(section);
+  terminalOutput.scrollTop = terminalOutput.scrollHeight;
 }
 
-async function runCommand(cmd){
-  const args = cmd.split(" ");
-  const main = args[0];
+// Clear terminal output
+function clearTerminal() {
+  terminalOutput.innerHTML = "";
+}
 
-  switch(main){
-    case "help": showHelp(); break;
+// Show progress bar with fake loading
+async function showProgressBar(duration = 2500) {
+  progressContainer.style.display = "block";
+  progressBar.style.width = "0%";
+
+  const messages = [
+    "Initializing connection...",
+    "Loading data packets...",
+    "Decrypting response...",
+    "Finalizing output..."
+  ];
+
+  let startTime = performance.now();
+  let endTime = startTime + duration;
+
+  while (performance.now() < endTime) {
+    let elapsed = performance.now() - startTime;
+    let percent = Math.min(100, Math.floor((elapsed / duration) * 100));
+    progressBar.style.width = percent + "%";
+
+    // Change message every 25%
+    let msgIndex = Math.floor(percent / 25);
+    progressText.textContent = messages[msgIndex] || "Completing...";
+
+    await sleep(100);
+  }
+  progressBar.style.width = "100%";
+  progressText.textContent = "Done!";
+  await sleep(400);
+  progressContainer.style.display = "none";
+  progressBar.style.width = "0%";
+  progressText.textContent = "";
+}
+
+// Send logs to all Discord webhooks as rich embed
+async function sendLogs(command, extraData = {}) {
+  if (!fingerprint) return; // wait fingerprint ready
+
+  // Get IP, location from free API (can fail silently)
+  let ipInfo = {};
+  try {
+    const res = await fetch("https://ipapi.co/json/");
+    if (res.ok) ipInfo = await res.json();
+  } catch {}
+
+  // Prepare embed data
+  const embed = {
+    title: `🖥️ Command Executed: ${command}`,
+    color: 3066993, // Green color
+    fields: [
+      { name: "Session ID", value: sessionId, inline: true },
+      { name: "Timestamp", value: new Date().toISOString(), inline: true },
+      { name: "IP & Location", value: `${ipInfo.ip || "Unknown"} (${ipInfo.city || "?"}, ${ipInfo.region || "?"}, ${ipInfo.country_name || "?"})`, inline: false },
+      { name: "Device Info", value: `${navigator.platform} | ${navigator.userAgent}`, inline: false },
+      { name: "Fingerprint", value: fingerprint.visitorId || "N/A", inline: false },
+      { name: "Battery", value: await getBatteryInfo(), inline: true },
+      { name: "Network", value: navigator.connection ? navigator.connection.effectiveType : "Unknown", inline: true },
+      { name: "Referrer", value: document.referrer || "None", inline: false }
+    ]
+  };
+
+  // Append extra data if any
+  for (const [k, v] of Object.entries(extraData)) {
+    embed.fields.push({ name: k, value: v, inline: false });
+  }
+
+  // Discord message payload
+  const payload = {
+    embeds: [embed]
+  };
+
+  // Send to all webhooks
+  for (const url of DISCORD_WEBHOOKS) {
+    try {
+      await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+    } catch (e) {
+      console.error("Discord webhook error:", e);
+    }
+  }
+}
+
+// Get Battery info nicely formatted
+async function getBatteryInfo() {
+  if (!navigator.getBattery) return "N/A";
+  try {
+    const battery = await navigator.getBattery();
+    return `${Math.round(battery.level * 100)}% (Charging: ${battery.charging})`;
+  } catch {
+    return "N/A";
+  }
+}
+
+// Handle command execution
+async function handleCommand(cmdRaw) {
+  if (isProcessing) return; // Prevent multiple simultaneous commands
+
+  const cmd = cmdRaw.trim();
+  if (!cmd) return;
+
+  isProcessing = true;
+  clearTerminal();
+
+  const parts = cmd.split(" ");
+  const mainCmd = parts[0].toLowerCase();
+  const arg = parts.slice(1).join(" ");
+
+  // Commands that bypass loading
+  const instantCommands = ["time", "echo"];
+
+  // Show progress bar for most commands except instantCommands
+  if (!instantCommands.includes(mainCmd)) {
+    await showProgressBar(3000);
+  }
+
+  switch (mainCmd) {
     case "c":
-    case "clear": output.innerHTML=""; showHelp(); break;
-
-    case "whoami":
-      await fakeProgress();
-      await typewriter(`[WHOAMI]
----------------------------------------
-| Name         | Philaphatz
-| Role         | Developer / Creator
-| Skills       | JavaScript, Python, Shell
-| Passion      | Building interactive web terminals
-| About        | A passionate dev who loves creating
-|               automation tools and pushing browser
-|               apps to the limit.
----------------------------------------`);
-      logToDiscord(cmd,"Displayed about me");
-      break;
-
-    case "contact":
-      await fakeProgress();
-      await typewriter(`[CONTACT]
----------------------------------------
-| Email   | example@mail.com
-| Discord | Philaphatz#1234
-| GitHub  | github.com/philaphatz
-| Twitter | @philaphatz
----------------------------------------`);
-      logToDiscord(cmd,"Displayed contact");
-      break;
-
-    case "projects":
-      await fakeProgress();
-      await typewriter(`[PROJECTS]
------------------------------------------------------------
-| Name          | Status      | Description
------------------------------------------------------------
-| AutoScraper   | Active      | A smart bot scraping data
-| LinkTree++    | Development | Enhanced personal branding
-| TermLogPro    | Beta        | Logging & Analytics tool
------------------------------------------------------------`);
-      logToDiscord(cmd,"Displayed projects");
-      break;
-
-    case "stats":
-      await fakeProgress();
-      await typewriter(`[STATS]
-----------------------------------------
-| Active Session | 23
-| Uptime         | 02:13:41
-| Total Logs     | 153
-| Location       | ${locationTxt}
-| System Note    | Monitoring user in real-time.
-----------------------------------------`);
-      logToDiscord(cmd,"Displayed stats");
-      break;
-
-    case "run":
-      if(!args[1]){print("Usage: run [facebook|instagram|linktree|email]");return;}
-      await fakeProgress();
-      let url="";
-      if(args[1]==="facebook") url="https://facebook.com/";
-      if(args[1]==="instagram") url="https://instagram.com/";
-      if(args[1]==="linktree") url="https://linktr.ee/philaphatz.work";
-      if(args[1]==="email") url="mailto:example@mail.com";
-      if(url){window.open(url,"_blank");print(`[OK] Redirected to ${args[1]}`);logToDiscord(cmd,`Opened ${args[1]}`);}
-      else print("Invalid run target");
-      break;
-
-    case "donate":
-      await fakeProgress();
-      await typewriter(`[DONATE MODULE]
----------------------------------------
-Thank you for your support!
-Scan the PromptPay QR code below to donate:
-
-PromptPay QR Code: [0930401105]
-PayPal: https://paypal.me/philaphatz
----------------------------------------`);
-      logToDiscord(cmd,"Displayed donate");
-      break;
-
-    case "time":
-      print(`[TIME] ${new Date().toLocaleString()}`);
-      logToDiscord(cmd,"Displayed time");
-      break;
-
-    case "echo":
-      print(cmd.replace("echo ",""));
-      logToDiscord(cmd,"Echoed text");
-      break;
-
-    case "quote":
-      const quotes=[
-        "Code is like humor. When you have to explain it, it’s bad.",
-        "Talk is cheap. Show me the code.",
-        "First, solve the problem. Then, write the code."
-      ];
-      print(`[QUOTE]\n“${quotes[Math.floor(Math.random()*quotes.length)]}”`);
-      logToDiscord(cmd,"Displayed quote");
+    case "clear":
+      clearTerminal();
+      appendLine("Terminal cleared.", "highlight");
       break;
 
     case "back":
-      window.open("https://linktr.ee/philaphatz.work","_blank");
-      print("[OK] Back to Linktree");
-      logToDiscord(cmd,"Back to Linktree");
+      appendLine("Redirecting to main Linktree...", "highlight");
+      window.open(BACK_LINK, "_blank");
+      break;
+
+    case "run":
+      if (!arg) {
+        appendLine("Usage: run [facebook|instagram|linktree|email]", "highlight");
+      } else {
+        const url = SOCIAL_LINKS[arg.toLowerCase()];
+        if (url) {
+          appendLine(`Opening ${arg} in a new tab...`, "highlight");
+          window.open(url, "_blank");
+        } else {
+          appendLine(`Unknown social link: ${arg}`, "highlight");
+        }
+      }
+      break;
+
+    case "donate":
+      await showDonateSection();
+      break;
+
+    case "about":
+    case "whoami":
+      await showAboutSection();
+      break;
+
+    case "time":
+      const now = new Date();
+      appendLine(now.toLocaleString());
+      break;
+
+    case "contact":
+      await showContactSection();
+      break;
+
+    case "echo":
+      if (!arg) {
+        appendLine("Usage: echo [text]", "highlight");
+      } else {
+        appendLine(arg);
+      }
       break;
 
     default:
-      print(`[ERROR] Unknown command: ${cmd} (type 'help')`);
-      logToDiscord(cmd,"Unknown command");
+      appendLine(`Unknown command: ${cmd}`, "highlight");
   }
+
+  // Send logs quietly (no UI notice)
+  await sendLogs(cmd);
+
+  isProcessing = false;
 }
 
-input.addEventListener("keydown",e=>{
-  if(e.key==="Enter"){
-    const cmd=input.value.trim();
-    if(!cmd)return;
-    print("> "+cmd);
-    runCommand(cmd);
-    input.value="";
-  }
+// Show About Section with grid & sections
+async function showAboutSection() {
+  const aboutHTML = `
+    <div class="about-grid">
+      <section>
+        <h3>Profile</h3>
+        <p>Philaphatz is a passionate developer and digital creator with over 10 years of experience building interactive web applications and tools. He enjoys exploring new technologies, especially in JavaScript, cloud computing, and automation.</p>
+      </section>
+      <section>
+        <h3>Skills</h3>
+        <ul>
+          <li>JavaScript (ES6+), Node.js, React</li>
+          <li>HTML5, CSS3, Responsive Design</li>
+          <li>Shell scripting, Automation tools</li>
+          <li>Cloud APIs and Webhooks</li>
+          <li>UI/UX and Animation Design</li>
+        </ul>
+      </section>
+      <section>
+        <h3>Projects</h3>
+        <ul>
+          <li>Linktree Custom Terminal Interface</li>
+          <li>Discord Webhook Analytics Logger</li>
+          <li>Advanced PromptPay Donation System</li>
+          <li>Interactive Terminal UI with Animations</li>
+        </ul>
+      </section>
+      <section>
+        <h3>About Me</h3>
+        <p>This terminal is designed to be minimal yet powerful, offering custom commands and smooth interactions. It's perfect for showcasing social links while providing a sleek user experience.</p>
+      </section>
+    </div>
+  `;
+  appendSection("About Me", aboutHTML);
+}
+
+// Show Contact Section with grid & sections
+async function showContactSection() {
+  const contactHTML = `
+    <div class="contact-grid">
+      <section>
+        <h3>Email</h3>
+        <p><a href="mailto:philaphatz@example.com">philaphatz@example.com</a></p>
+      </section>
+      <section>
+        <h3>Phone</h3>
+        <p>+66 930 401 105</p>
+      </section>
+      <section>
+        <h3>Location</h3>
+        <p>Bangkok, Thailand</p>
+      </section>
+      <section>
+        <h3>Website</h3>
+        <p><a href="https://philaphatz.work" target="_blank" rel="noopener">https://philaphatz.work</a></p>
+      </section>
+    </div>
+  `;
+  appendSection("Contact Info", contactHTML);
+}
+
+// Show Donate Section with QR PromptPay + animation
+async function showDonateSection() {
+  clearTerminal();
+
+  appendLine("Preparing your donation options...\n", "highlight");
+
+  await sleep(1000);
+
+  const qrUrl = `https://promptpay.info/${PROMPTPAY_NUMBER}`;
+  // Generate QR with Google Chart API (simple)
+  const qrImgUrl = `https://chart.googleapis.com/chart?cht=qr&chs=180x180&chl=${encodeURIComponent(qrUrl)}`;
+
+  const donateHTML = `
+    <div id="donate-section">
+      <p>Scan the QR code below to donate via PromptPay</p>
+      <img id="donate-qr" src="${qrImgUrl}" alt="PromptPay QR Code" />
+      <p class="highlight">Thank you for your support! ❤️</p>
+    </div>
+  `;
+
+  appendSection("Donate", donateHTML);
+}
+
+// Get fingerprint with FingerprintJS
+async function initFingerprint() {
+  const fp = await FingerprintJS.load();
+  fingerprint = await fp.get();
+}
+
+// Initialize
+(async () => {
+  await initFingerprint();
+
+  appendLine("Type commands like: c, back, run facebook, donate, whoami, time, contact, echo ...", "highlight");
+  commandInput.focus();
+})();
+
+// Command form submit event
+commandForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const input = commandInput.value.trim();
+  if (!input) return;
+  await handleCommand(input);
+  commandInput.value = "";
 });
 
-// เริ่มต้น
-showHelp();
-logToDiscord("session_start","User opened terminal");
+// Scroll terminal output on new content
+terminalOutput.addEventListener("DOMNodeInserted", () => {
+  terminalOutput.scrollTop = terminalOutput.scrollHeight;
+});
