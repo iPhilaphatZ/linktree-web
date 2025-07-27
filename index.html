@@ -1,38 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>PhilaphatZ | Terminal</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="terminal-container">
-    <div id="terminal-output">
-      <p class="welcome">Welcome to PhilaphatZ Terminal v1.0</p>
-      <p class="welcome">บางคำสั่งอาจมีการบันทึกข้อมูลเพื่อปรับปรุงบริการ</p>
-      <p>Type <strong>help</strong> to see available commands.</p>
+  <div class="terminal-container" role="main" aria-label="Terminal interface">
+    <div id="terminal-output" tabindex="0" aria-live="polite" aria-atomic="false">
+      <p class="welcome">Welcome to <strong>PhilaphatZ Terminal v1.0</strong></p>
+      <p class="welcome subtle">บางคำสั่งอาจมีการบันทึกข้อมูลเพื่อปรับปรุงบริการ</p>
+      <p class="subtle">Type <strong>help</strong> to see available commands.</p>
     </div>
-    <div class="terminal-input">
-      <span class="prompt">></span>
-      <input type="text" id="command-input" autofocus>
-    </div>
+    <form id="terminal-form" class="terminal-input" autocomplete="off" spellcheck="false" novalidate>
+      <label for="command-input" class="visually-hidden">Command Input</label>
+      <span class="prompt" aria-hidden="true">&gt;</span>
+      <input
+        type="text"
+        id="command-input"
+        name="command"
+        autofocus
+        aria-autocomplete="list"
+        aria-describedby="help-text"
+        placeholder="Type command here..."
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
+      />
+    </form>
   </div>
 
-  <!-- Donate QR Modal -->
-  <div id="donate-modal" class="modal hidden">
+  <!-- Donate Modal -->
+  <div id="donate-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="donate-title" aria-describedby="donate-desc">
     <div class="modal-content">
-      <span id="close-modal" class="close">&times;</span>
-      <h2>✨ Support this Project ✨</h2>
+      <button id="close-modal" class="close" aria-label="Close Donate Modal">&times;</button>
+      <h2 id="donate-title">✨ Support this Project ✨</h2>
+      <p id="donate-desc" class="subtle">Thank you for your support! Scan the PromptPay QR code below to donate:</p>
       <div class="donate-grid">
         <div class="donate-section">
           <h3>PayPal</h3>
-          <p><a href="https://paypal.me/philaphatz" target="_blank" class="donate-link">Donate via PayPal</a></p>
-          <canvas id="paypal-qr"></canvas>
+          <p><a href="https://paypal.me/philaphatz" target="_blank" rel="noopener" class="donate-link">Donate via PayPal</a></p>
+          <canvas id="paypal-qr" aria-label="PayPal QR Code"></canvas>
+        </div>
+        <div class="donate-section">
+          <h3>PromptPay</h3>
+          <p><code>0930401105</code></p>
+          <canvas id="promptpay-qr" aria-label="PromptPay QR Code"></canvas>
         </div>
       </div>
     </div>
   </div>
+
+  <div id="audio-player" aria-hidden="true"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
   <script src="script.js"></script>
