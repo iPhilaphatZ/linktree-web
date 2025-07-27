@@ -81,8 +81,10 @@ async function handleCommand(cmd) {
       }
       break;
     case "donate":
-      donateModal.classList.remove("hidden");
-      break;
+  donateModal.classList.remove("hidden");
+  setTimeout(() => donateModal.classList.add("show"), 10); 
+  break;
+
     case "about":
     case "whoami":
       await showProgress();
@@ -226,12 +228,16 @@ function getGPU() {
   }
 }
 
-// Close modal button
+// Close modal button (กดปุ่ม X)
 closeModal.addEventListener("click", () => {
-  donateModal.classList.add("hidden");
+  donateModal.classList.remove("show"); 
+  setTimeout(() => donateModal.classList.add("hidden"), 350); // รอ animation จบก่อนซ่อน
 });
 
-// Close modal on clicking outside modal content
+// Close modal on clicking outside modal content (กดพื้นหลัง)
 donateModal.addEventListener("click", (e) => {
-  if (e.target === donateModal) donateModal.classList.add("hidden");
+  if (e.target === donateModal) {
+    donateModal.classList.remove("show");
+    setTimeout(() => donateModal.classList.add("hidden"), 350);
+  }
 });

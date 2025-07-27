@@ -7,40 +7,34 @@ body {
   font-family: 'Courier New', monospace;
   background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
   color: #e6edf3;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  user-select: text;
   height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 1rem;
-}
-.visually-hidden {
-  position: absolute !important;
-  width: 1px !important;
-  height: 1px !important;
-  padding: 0 !important;
-  margin: -1px !important;
-  overflow: hidden !important;
-  clip: rect(0,0,0,0) !important;
-  border: 0 !important;
+  user-select: text;
 }
 
 /* Terminal container */
 .terminal-container {
   width: 100%;
   max-width: 850px;
-  background: #161b22cc;
-  border-radius: 12px;
+  background: #161b22f2;
+  border-radius: 14px;
   box-shadow:
-    0 0 15px 2px rgba(0, 255, 200, 0.25),
-    0 0 30px 5px rgba(58, 134, 255, 0.25),
-    inset 0 0 12px 1px rgba(8, 13, 25, 0.8);
+    0 0 20px rgba(0, 200, 255, 0.35),
+    0 0 40px rgba(255, 0, 110, 0.15),
+    inset 0 0 10px rgba(8, 13, 25, 0.8);
   padding: 24px 32px;
   display: flex;
   flex-direction: column;
   min-height: 500px;
+  transition: box-shadow 0.4s ease;
+}
+.terminal-container:hover {
+  box-shadow:
+    0 0 25px rgba(0, 255, 200, 0.45),
+    0 0 50px rgba(131, 56, 236, 0.25);
 }
 
 /* Terminal output */
@@ -49,36 +43,31 @@ body {
   overflow-y: auto;
   white-space: pre-wrap;
   font-size: 1rem;
-  line-height: 1.4;
-  padding-right: 8px;
+  line-height: 1.45;
+  padding: 10px;
   margin-bottom: 12px;
-  outline: none;
   border: 1px solid #30363d;
-  border-radius: 8px;
-  background: #0d1117ee;
-  box-shadow: inset 0 0 12px rgba(0, 200, 255, 0.2);
+  border-radius: 10px;
+  background: #0d1117e6;
+  box-shadow: inset 0 0 14px rgba(0, 180, 255, 0.2);
   scrollbar-width: thin;
-  scrollbar-color: #58a6ff88 #0d1117cc;
+  scrollbar-color: #3a86ff #0d1117cc;
 }
 #terminal-output::-webkit-scrollbar {
   width: 8px;
 }
-#terminal-output::-webkit-scrollbar-track {
-  background: #0d1117cc;
-}
 #terminal-output::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #00ff9d, #3a86ff, #8338ec);
+  background: linear-gradient(180deg, #00ff9d, #3a86ff, #ff006e);
   border-radius: 10px;
   border: 2px solid #0d1117cc;
 }
 
 /* Welcome messages */
 .welcome {
-  color: #39ff14; /* เขียวนีออน */
+  color: #39ff14;
   font-weight: 600;
   text-shadow: 0 0 6px #39ff14, 0 0 12px rgba(57,255,20,0.4);
-  animation: fadeIn 1.5s ease forwards;
-  margin-bottom: 0.5em;
+  animation: fadeIn 1.4s ease forwards;
 }
 .subtle {
   color: #8b949e;
@@ -92,8 +81,8 @@ body {
   border: 1.8px solid #30363d;
   border-radius: 10px;
   background: #0d1117;
-  padding: 6px 12px;
-  box-shadow: inset 0 0 10px #222d3a, 0 0 6px rgba(255,0,110,0.3);
+  padding: 8px 12px;
+  box-shadow: inset 0 0 8px #222d3a, 0 0 6px rgba(255, 0, 110, 0.2);
 }
 .prompt {
   color: #00d4ff;
@@ -109,8 +98,7 @@ input#command-input {
   border: none;
   color: #ffffff;
   font-size: 1.1rem;
-  line-height: 1.4;
-  outline-offset: 2px;
+  outline: none;
 }
 input#command-input::placeholder {
   color: #8b949e;
@@ -123,7 +111,7 @@ input#command-input::placeholder {
   border-radius: 4px;
   overflow: hidden;
   margin: 10px 0 15px;
-  box-shadow: inset 0 0 10px #222d3a;
+  box-shadow: inset 0 0 8px #222d3a;
 }
 .progress-bar-fill {
   height: 100%;
@@ -151,7 +139,6 @@ input#command-input::placeholder {
   z-index: 1000;
   padding: 1rem;
   backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
 }
 .hidden {
   display: none;
@@ -159,14 +146,13 @@ input#command-input::placeholder {
 .modal-content {
   position: relative;
   background: #161b22;
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 24px 30px 36px;
   width: 90%;
   max-width: 480px;
   color: #ffffff;
   box-shadow: 0 0 20px #8338ecaa, 0 0 30px #3a86ffaa;
   text-align: center;
-  user-select: text;
 }
 .close {
   position: absolute;
@@ -212,7 +198,30 @@ input#command-input::placeholder {
   color: #ff006e;
 }
 
-/* Code block style in terminal */
+/* ✅ Smooth modal animation */
+.modal {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+.modal.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-content {
+  transform: scale(0.8);
+  opacity: 0;
+  transition: transform 0.35s ease, opacity 0.35s ease;
+}
+
+.modal.show .modal-content {
+  transform: scale(1);
+  opacity: 1;
+}
+
+/* Terminal command output block */
 pre.cmd-output {
   background: #0d1117cc;
   border: 1px solid #21262d;
