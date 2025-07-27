@@ -1,0 +1,81 @@
+/* # Base Style */
+body {
+  margin: 0;
+  font-family: monospace;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: background 0.5s, color 0.5s;
+}
+#terminal {
+  width: 90%;
+  max-width: 700px;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.8);
+}
+#output {
+  height: 400px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  color: inherit;
+}
+#input-line {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+}
+.prompt {
+  margin-right: 5px;
+}
+#command {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: inherit;
+  font-size: 16px;
+}
+
+/* # Theme: Cyberpunk */
+.theme-cyberpunk {
+  background: #0d0d0d;
+  color: #00fff7;
+}
+.theme-cyberpunk #terminal {
+  border: 2px solid #ff00c8;
+  box-shadow: 0 0 15px #ff00c8;
+}
+
+/* # Theme: Matrix */
+.theme-matrix {
+  background: #000;
+  color: #00ff00;
+}
+.theme-matrix #terminal {
+  border: 2px solid #00ff00;
+  box-shadow: 0 0 15px #00ff00;
+}
+
+/* # Theme: Neon */
+.theme-neon {
+  background: #1a001a;
+  color: #ff33cc;
+}
+.theme-neon #terminal {
+  border: 2px solid #ff33cc;
+  box-shadow: 0 0 20px #ff33cc;
+}
+
+/* # Theme: Light */
+.theme-light {
+  background: #f4f4f4;
+  color: #333;
+}
+.theme-light #terminal {
+  background: #fff;
+  border: 2px solid #ccc;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
