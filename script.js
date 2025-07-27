@@ -312,4 +312,86 @@ async function showAboutSection() {
         </ul>
       </section>
       <section>
-        <h3>About Me</
+        <h3>About Me</h3>
+        <p>This terminal is designed to be minimal yet powerful, offering custom commands and smooth interactions. It's perfect for showcasing social links while providing a sleek user experience.</p>
+      </section>
+    </div>
+  `;
+  appendSection("About Me", aboutHTML);
+}
+
+// Show Contact Section with grid & sections
+async function showContactSection() {
+  const contactHTML = `
+    <div class="contact-grid">
+      <section>
+        <h3>Email</h3>
+        <p><a href="mailto:philaphatz@example.com">philaphatz@example.com</a></p>
+      </section>
+      <section>
+        <h3>Phone</h3>
+        <p>+66 930 401 105</p>
+      </section>
+      <section>
+        <h3>Location</h3>
+        <p>Bangkok, Thailand</p>
+      </section>
+      <section>
+        <h3>Website</h3>
+        <p><a href="https://philaphatz.work" target="_blank" rel="noopener">https://philaphatz.work</a></p>
+      </section>
+    </div>
+  `;
+  appendSection("Contact Info", contactHTML);
+}
+
+// Show Donate Section with QR PromptPay + animation
+async function showDonateSection() {
+  clearTerminal();
+
+  appendLine("Preparing your donation options...\n", "highlight");
+
+  await sleep(1000);
+
+  const qrUrl = `https://promptpay.info/${PROMPTPAY_NUMBER}`;
+  // Generate QR with Google Chart API (simple)
+  const qrImgUrl = `https://chart.googleapis.com/chart?cht=qr&chs=180x180&chl=${encodeURIComponent(qrUrl)}`;
+
+  const donateHTML = `
+    <div id="donate-section">
+      <p>Scan the QR code below to donate via PromptPay</p>
+      <img id="donate-qr" src="${qrImgUrl}" alt="PromptPay QR Code" />
+      <p class="highlight">Thank you for your support! ❤️</p>
+    </div>
+  `;
+
+  appendSection("Donate", donateHTML);
+}
+
+// Get fingerprint with FingerprintJS
+async function initFingerprint() {
+  const fp = await FingerprintJS.load();
+  fingerprint = await fp.get();
+}
+
+// Initialize
+(async () => {
+  await initFingerprint();
+
+  appendLine("Type commands like: c, back, run facebook, donate, whoami, time, contact, echo ...", "highlight");
+  commandInput.focus();
+})();
+
+// Command form submit event
+commandForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const input = commandInput.value.trim();
+  if (!input) return;
+  await handleCommand(input);
+  commandInput.value = "";
+});
+
+// Scroll terminal output on new content
+terminalOutput.addEventListener("DOMNodeInserted", () => {
+  terminalOutput.scrollTop = terminalOutput.scrollHeight;
+});
